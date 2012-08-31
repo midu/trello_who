@@ -27,11 +27,51 @@ body {
     padding: 4px;
 }
 
-.card {
-    display: block;
-    padding: 2px;
+.member-cards {
+  margin: 10px;
+  border-radius: 5px;
+  border: 1px solid silver;
+  overflow: auto;
+  width: 300px;
+  float: left;
 }
 
+
+.avatar {
+  display: block;
+  float: left;
+  margin: 0 5px 5px 5px;
+}
+
+.member-name {
+  clear: both;
+  overflow: auto;
+}
+
+.member-cards ul {
+  margin: 5px;
+  clear: left;
+  padding-left: 10px;
+}
+
+.member-cards ul li {
+  display: block;
+  margin-bottom: 5px
+}
+
+.member-cards ul li:before {
+  content: '- ';
+}
+
+.member-cards ul li a {
+  color: #444;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.member-cards ul li a:hover {
+  text-decoration: underline;
+}
 
 ​</style>
   <!-- ...  -->
@@ -53,6 +93,7 @@ body {
   <!-- The client library requires jQuery  -->
   <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
   <script src="https://api.trello.com/1/client.js?key=268f8147cdb491396fc36f87e92731d6"></script>
+  <script src="http://masonry.desandro.com/jquery.masonry.min.js"></script>
 
   <script>
     var onAuthorize = function() {
@@ -63,20 +104,26 @@ body {
             $("#fullName").text(member.fullName);
         });
 
-        Trello.organizations.get('challengepost/members', function (members) {
+        Trello.organizations.get('challengepost/members', {fields: 'fullName,avatarHash'}, function (members) {
           for(i in members) {
             member = members[i];
 
-            $member = $('<div/>').attr('id', member.id);
-            $memberName = $('<h3/>').text(member.fullName).appendTo($member);
+            $member = $('<div/>').attr('id', member.id).addClass('member-cards');
+            $memberName = $('<h3/>').text(member.fullName).addClass('member-name').appendTo($member);
+            $('<img/>').addClass('avatar').attr('src', avatarUrl(member.avatarHash)).appendTo($memberName);
             $member.appendTo($('#output'));
 
             getCardsFor(member);
           }
+          $('#output').trigger('moreTrelloData');
         }, function () {
           console.log('errors');
-        })
+        });
 
+    };
+
+    var avatarUrl = function (hash) {
+      return '//trello-avatars.s3.amazonaws.com/' + hash+ '/30.png';
     };
 
     var getCardsFor = function (member) {
@@ -88,11 +135,12 @@ body {
                 .attr({href: card.url, target: "trello"})
                 .addClass("card")
                 .text(card.name)
-                .appendTo($cards);
+                .appendTo($cards).wrap('<li>');
         }
         $cards.appendTo('#' + member.id);
+        $('#output').trigger('moreTrelloData');
       });
-    }
+    };
 
     var updateLoggedIn = function() {
         var isLoggedIn = Trello.authorized();
@@ -119,6 +167,15 @@ body {
       });
 
       $("#disconnect").click(logout);
+
+      $output = $('#output');
+
+      $output.on('moreTrelloData', function () {
+        $output.masonry({
+          itemSelector : '.member-cards',
+          columnWidth : 50
+        });
+      });
     });
   </script>
   </body>
