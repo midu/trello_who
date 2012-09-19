@@ -1,6 +1,8 @@
 module.exports = function( grunt ) {
   'use strict';
-  //
+
+  grunt.loadNpmTasks('grunt-ember-handlebars'); // to live compile my handlebar files
+
   // Grunt configuration:
   //
   // https://github.com/cowboy/grunt/blob/master/docs/getting_started.md
@@ -9,6 +11,13 @@ module.exports = function( grunt ) {
 
     // Project configuration
     // ---------------------
+
+    ember_handlebars: {
+      all: {
+        src: ['app/scripts/templates/**/*.handlebars'],
+        dest: 'app/scripts/templates/'
+      }
+    },
 
     // specify an alternate install location for Bower
     bower: {
@@ -67,6 +76,10 @@ module.exports = function( grunt ) {
           'app/images/**/*'
         ],
         tasks: 'reload'
+      },
+      handlebars: { // add this, it will compile the handlebar files whenever they change
+        files: [ 'app/scripts/templates/**/*.handlebars' ],
+        tasks: 'ember_handlebars reload'
       }
     },
 
